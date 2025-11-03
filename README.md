@@ -1,29 +1,22 @@
 # ISO 8583 Message Generator for Faster Payment System (FPS)
 
-Python scripts for generating ISO 8583 messages and bitmaps for Faster Payment System (FPS) messages.
+A Python script that generates complete ISO 8583 messages with formatted field data for Faster Payment System (FPS) messages.
 
 ## Overview
 
-This repository contains two tools:
+This tool generates complete ISO 8583 messages from field data and metadata, applying proper formatting rules for different field types. The output follows the ISO 8583 standard with:
 
-1. **bitmap_generator.py** - Generates bitmap files from JSON field metadata (indicates which fields are present)
-2. **iso8583_message_generator.py** - Generates complete ISO 8583 messages with formatted field data
-
-### ISO 8583 Message Structure
-
-The complete message format follows the ISO 8583 standard:
-
-- **First 4 characters**: Message ID (e.g., "0200")
-- **Next 16 bytes (32 hex chars)**: Primary bitmap indicating presence of fields 1-64
-- **Next 16 bytes (32 hex chars)**: Secondary bitmap indicating presence of fields 65-128
-- **Remaining data**: Formatted field values in order
+- **Message ID** (4 characters)
+- **Primary bitmap** (16 bytes / 32 hex chars) - indicates presence of fields 1-64
+- **Secondary bitmap** (16 bytes / 32 hex chars) - indicates presence of fields 65-128
+- **Formatted field data** - all field values formatted according to their metadata
 
 The bitmap uses bit positions to indicate which fields are present in a message. Bit 0 (leftmost) of the primary bitmap is set to 1 if the secondary bitmap is present.
 
 ## Requirements
 
 - Python 3.6 or higher
-- No external dependencies required (uses only standard library)
+- No external dependencies (uses only standard library)
 
 ## Installation
 
@@ -35,48 +28,20 @@ cd bitmapCreation
 
 2. Make the script executable (optional):
 ```bash
-chmod +x bitmap_generator.py
+chmod +x generate_iso8583_message.py
 ```
 
 ## Usage
 
-### Tool 1: Bitmap Generator (bitmap_generator.py)
-
-Generates bitmap files indicating which fields are present (no field data).
-
-#### Basic Usage
-
-Generate a bitmap from all fields in a JSON file:
-
-```bash
-python3 bitmap_generator.py -i dataElementsMeta.json -o bitmap.txt
-```
-
-### Tool 2: ISO 8583 Message Generator (iso8583_message_generator.py)
-
-Generates complete ISO 8583 messages with formatted field data.
-
-#### Basic Usage
+### Basic Usage
 
 Generate a complete ISO 8583 message:
 
 ```bash
-python3 iso8583_message_generator.py -m dataElementsMeta.json -d field_data.json -o message.txt
+python3 generate_iso8583_message.py -m dataElementsMeta.json -d field_data.json -o message.txt
 ```
 
 ### Command Line Options
-
-#### Bitmap Generator Options
-
-```
--i, --input INPUT        Input JSON file with field metadata (required)
--o, --output OUTPUT      Output bitmap file path (required)
--m, --message-id ID      4-character message ID (default: 0200)
--f, --fields FIELDS      Comma-separated list of field numbers to include
--v, --verbose            Print detailed bitmap information
-```
-
-#### ISO 8583 Message Generator Options
 
 ```
 -m, --metadata FILE      Field metadata JSON file (dataElementsMeta.json) (required)
@@ -88,63 +53,34 @@ python3 iso8583_message_generator.py -m dataElementsMeta.json -d field_data.json
 
 ### Examples
 
-#### Example 1: Generate bitmap with all fields
+#### Example 1: Generate ISO 8583 message
 
 ```bash
-python3 bitmap_generator.py -i dataElementsMeta.json -o bitmap.txt
+python3 generate_iso8583_message.py -m dataElementsMeta.json -d sample_field_data.json -o message.txt
 ```
 
 Output:
 ```
-✓ Bitmap file generated successfully: bitmap.txt
-  Content: 0200BE72016B21FFA0CC3B000FA279EE1FFF
-  Length: 36 characters
+✓ ISO 8583 message generated successfully: message.txt
+  Message: 0200B6300002206000000000000240000000010203001234567890120000000005000011031430451234562024110312TXN1234567890812345678ABCDEFGHIJK10987654321008SORTCODEFPSINST001 
+  Length: 162 characters
 ```
 
-#### Example 2: Generate bitmap with custom message ID
+#### Example 2: Generate with custom message ID
 
 ```bash
-python3 bitmap_generator.py -i dataElementsMeta.json -o bitmap.txt -m 0210
+python3 generate_iso8583_message.py -m dataElementsMeta.json -d sample_field_data.json -o message.txt --message-id 0210
 ```
 
-This generates a bitmap with message ID "0210" instead of the default "0200".
-
-#### Example 3: Generate bitmap for specific fields only
+#### Example 3: Verbose output with detailed information
 
 ```bash
-python3 bitmap_generator.py -i sample_fields.json -o bitmap.txt -f 3,4,6,7,11,12
+python3 generate_iso8583_message.py -m dataElementsMeta.json -d sample_field_data.json -o message.txt -v
 ```
 
-This generates a bitmap containing only fields 3, 4, 6, 7, 11, and 12.
+Output shows detailed field formatting, bitmaps, and complete message breakdown.
 
-#### Example 4: Verbose output with detailed information
-
-```bash
-python3 bitmap_generator.py -i sample_fields.json -o bitmap.txt -v
-```
-
-Output:
-```
-✓ Bitmap file generated successfully: bitmap.txt
-  Content: 0200B6300002206000000000000240000000
-  Length: 36 characters
-
-Detailed Bitmap Information:
-============================================================
-Message ID: 0200
-
-Primary Bitmap (Fields 1-64):
-  Binary: 1011011000110000000000000000001000100000011000000000000000000000
-  Hex: B630000220600000
-  Present fields: [1, 3, 4, 6, 7, 11, 12, 31, 35, 42, 43]
-
-Secondary Bitmap (Fields 65-128):
-  Binary: 0000000000000000000000000000001001000000000000000000000000000000
-  Hex: 0000000240000000
-  Present fields: [95, 98]
-```
-
-## ISO 8583 Message Generator - Field Formatting Rules
+## Field Formatting Rules
 
 The ISO 8583 message generator applies the following formatting rules based on field metadata:
 
@@ -187,43 +123,9 @@ The ISO 8583 message generator applies the following formatting rules based on f
   - Field 42 (length 11): "ABCDEFGHIJK" → "ABCDEFGHIJK"
   - Field 98 (length 11): "FPSINST001" → "FPSINST001 " (with trailing space)
 
-## JSON Input Formats
+## Input JSON Format
 
-### Format 1: Field Metadata (for bitmap_generator.py)
-
-The input JSON file should contain field metadata with the following structure:
-
-```json
-{
-  "f3": {
-    "field_number": "003",
-    "name": "PROCESSING CODE",
-    "format": "n6",
-    "length_type": "fixed",
-    "length": 6,
-    "data_type": "numeric",
-    "description": "Defines specific reason for message"
-  },
-  "f4": {
-    "field_number": "004",
-    "name": "ORIGINAL AMOUNT",
-    "format": "n14",
-    "length_type": "fixed",
-    "length": 14,
-    "data_type": "numeric",
-    "description": "Value of payment in native currency"
-  }
-}
-```
-
-### Required Fields
-
-- `field_number`: The field number (e.g., "003", "004")
-- Other fields are optional and used for documentation purposes
-
-The script extracts the field number from the JSON key (e.g., "f3" → field 3) and marks that field as present in the appropriate bitmap.
-
-### Format 2: Field Data (for iso8583_message_generator.py)
+### Field Data JSON (Required Input)
 
 The field data JSON file should contain actual field values:
 
@@ -248,33 +150,18 @@ The field data JSON file should contain actual field values:
 }
 ```
 
-**Notes**:
+**Key Points**:
+- Field keys use format `fN` where N is the field number (e.g., `f3`, `f4`, `f7`)
 - Date fields must be in "YYYY-MM-DD HH:MM:SS" format
 - Subfields are provided as nested objects with subfield tags as keys
 - Numeric values can be strings or numbers
-- The generator will apply appropriate formatting based on metadata
+- The script will apply appropriate formatting based on metadata
 
-## Output Formats
+### Field Metadata JSON (dataElementsMeta.json)
 
-### Bitmap Generator Output Format
+The metadata file defines field properties and formatting rules. This is typically provided and contains field definitions with data_type, length_type, length, value_constraints, and subfields information.
 
-The output file contains a single line with the bitmap in the following format:
-
-```
-<MessageID><PrimaryBitmap><SecondaryBitmap>
-```
-
-Example:
-```
-0200B6300002206000000000000240000000
-```
-
-Breaking this down:
-- `0200` - Message ID (4 characters)
-- `B630000220600000` - Primary bitmap (16 bytes / 32 hex characters)
-- `0000000240000000` - Secondary bitmap (16 bytes / 32 hex characters)
-
-### ISO 8583 Message Generator Output Format
+## Output Format
 
 The output file contains a complete ISO 8583 message:
 
@@ -354,16 +241,17 @@ Bit 6 = 1 → Field 7
 
 ### Method 2: Using Verbose Mode
 
-Run the script with `-v` flag to see detailed bitmap information:
+Run the script with `-v` flag to see detailed message information:
 
 ```bash
-python3 bitmap_generator.py -i sample_fields.json -o bitmap.txt -v
+python3 generate_iso8583_message.py -m dataElementsMeta.json -d sample_field_data.json -o message.txt -v
 ```
 
 This will display:
-- Binary representation of both bitmaps
-- Hexadecimal representation
+- Binary and hexadecimal representation of both bitmaps
 - List of all present fields
+- Formatted value for each field
+- Complete message breakdown
 
 ### Method 3: Python Verification Script
 
@@ -401,8 +289,7 @@ verify_bitmap('bitmap.txt')
 
 The repository includes sample files for testing:
 
-- `sample_fields.json` - Field metadata sample with 12 fields for bitmap generator
-- `sample_field_data.json` - Field data sample with actual values for message generator
+- `sample_field_data.json` - Sample field data with actual values
 - `dataElementsMeta.json` - Complete FPS field metadata (user-provided)
 
 ## Troubleshooting
@@ -413,18 +300,6 @@ Ensure the input JSON file path is correct and the file exists:
 
 ```bash
 ls -l dataElementsMeta.json
-```
-
-### Error: Invalid field numbers
-
-When using the `-f` option, ensure field numbers are comma-separated integers without spaces:
-
-```bash
-# Correct
-python3 bitmap_generator.py -i input.json -o output.txt -f 3,4,6,7
-
-# Incorrect
-python3 bitmap_generator.py -i input.json -o output.txt -f "3, 4, 6, 7"
 ```
 
 ### Error: Message ID must be exactly 4 characters
@@ -465,20 +340,27 @@ For variable-length fields, ensure the data length plus length indicator size do
 
 ## Technical Details
 
-### Bitmap Calculation Algorithm
+### Message Generation Algorithm
 
-1. Parse JSON to extract field numbers from keys (e.g., "f3" → 3)
-2. For each field number:
-   - If 1-64: Set corresponding bit in primary bitmap
-   - If 65-128: Set corresponding bit in secondary bitmap AND set bit 0 of primary bitmap
-3. Convert 64-bit arrays to 16-byte hexadecimal strings
-4. Concatenate: MessageID + PrimaryBitmap + SecondaryBitmap
+1. Load field metadata from dataElementsMeta.json
+2. Load field data from input JSON file
+3. For each field in the data:
+   - Extract field number from key (e.g., "f3" → 3)
+   - Get metadata for the field
+   - Apply formatting rules based on data_type and length_type
+   - Mark field as present in appropriate bitmap
+4. Generate bitmaps (primary and secondary)
+5. Concatenate: MessageID + PrimaryBitmap + SecondaryBitmap + FormattedFields
 
 ### Field Number Mapping
 
 - Field N (1-64) → Primary bitmap bit (N-1)
 - Field N (65-128) → Secondary bitmap bit (N-65)
 - Field 0 is the primary bitmap itself and is not included
+
+### Date Format Conversion
+
+The script extracts the output format from the `value_constraints` field in metadata and converts from "YYYY-MM-DD HH:MM:SS" to the specified format.
 
 ## License
 
