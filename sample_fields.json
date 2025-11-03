@@ -1,0 +1,114 @@
+{
+  "f3": {
+    "field_number": "003",
+    "name": "PROCESSING CODE",
+    "format": "n6",
+    "length_type": "fixed",
+    "length": 6,
+    "data_type": "numeric",
+    "description": "Defines specific reason for message"
+  },
+  "f4": {
+    "field_number": "004",
+    "name": "ORIGINAL AMOUNT",
+    "format": "n14",
+    "length_type": "fixed",
+    "length": 14,
+    "data_type": "numeric",
+    "description": "Value of payment in native currency"
+  },
+  "f6": {
+    "field_number": "006",
+    "name": "AMOUNT",
+    "format": "n14",
+    "length_type": "fixed",
+    "length": 14,
+    "data_type": "numeric",
+    "description": "Amount of payment in currency"
+  },
+  "f7": {
+    "field_number": "007",
+    "name": "DATE AND TIME TRANSMISSION",
+    "format": "n10",
+    "length_type": "fixed",
+    "length": 10,
+    "data_type": "date",
+    "description": "Date and time unsolicited message was sent"
+  },
+  "f11": {
+    "field_number": "011",
+    "name": "MESSAGE ID",
+    "format": "n6",
+    "length_type": "fixed",
+    "length": 6,
+    "data_type": "numeric",
+    "description": "Sequence number for USM order identification"
+  },
+  "f12": {
+    "field_number": "012",
+    "name": "DATE SENT",
+    "format": "n8",
+    "length_type": "fixed",
+    "length": 8,
+    "data_type": "date",
+    "description": "Date payment was sent to Core Central System"
+  },
+  "f31": {
+    "field_number": "031",
+    "name": "TRANSACTION REFERENCE NUMBER",
+    "format": "ans..18",
+    "length_type": "variable",
+    "length": "variable",
+    "max_length": 18,
+    "data_type": "alphanumeric",
+    "description": "Unique payment identifier"
+  },
+  "f35": {
+    "field_number": "035",
+    "name": "BENEFICIARY CUSTOMER ACCOUNT NUMBER",
+    "format": "ans..34",
+    "length_type": "variable",
+    "length": "variable",
+    "max_length": 34,
+    "data_type": "alphanumeric",
+    "description": "Payee's account number"
+  },
+  "f42": {
+    "field_number": "042",
+    "name": "ORIGINATING CREDIT INSTITUTION",
+    "format": "ans11",
+    "length_type": "fixed",
+    "length": 11,
+    "data_type": "alphanumeric",
+    "description": "Originating credit institution sort code or BIC"
+  },
+  "f43": {
+    "field_number": "043",
+    "name": "ORIGINATING CUSTOMER ACCOUNT NUMBER",
+    "format": "ans..34",
+    "length_type": "variable",
+    "length": "variable",
+    "max_length": 34,
+    "data_type": "alphanumeric",
+    "description": "Payer customer's account number"
+  },
+  "f95": {
+    "field_number": "095",
+    "name": "BENEFICIARY CREDIT INSTITUTION",
+    "format": "ans..11",
+    "length_type": "variable",
+    "length": "variable",
+    "max_length": 11,
+    "data_type": "alphanumeric",
+    "description": "Credit institution holding beneficiary account"
+  },
+  "f98": {
+    "field_number": "098",
+    "name": "SENDING FPS INSTITUTION",
+    "format": "ans11",
+    "length_type": "fixed",
+    "length": 11,
+    "data_type": "alphanumeric",
+    "description": "Member or Agency submitting payment"
+  }
+}
