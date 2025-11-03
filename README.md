@@ -97,7 +97,16 @@ The ISO 8583 message generator applies the following formatting rules based on f
   - Field 6 (length 14): "50000" → "00000000050000"
   - Field 11 (length 6): "123456" → "123456"
 
-### 3. Subfields
+### 3. Rate Fields (data_type: "rate")
+- **Format**: ABBBBBBBBBBB where A = decimal position from right, B = value without decimal point
+- **With decimal**: First digit indicates decimal places, remaining digits are zero-padded value
+- **Without decimal**: Entire value is zero-padded to specified length
+- **Examples**:
+  - Field 10 (length 12): "3.45678" → "500000345678" (5 decimal places + zero-padded "345678")
+  - Field 10 (length 12): "3" → "000000000003" (no decimal, zero-padded to 12)
+  - Field 10 (length 12): "1.234" → "300000001234" (3 decimal places + zero-padded "1234")
+
+### 4. Subfields
 - **Handling**: Values provided as dictionary with subfield tags
 - **Formatting**: Same rules apply recursively to each subfield
 - **Example**:
@@ -110,14 +119,14 @@ The ISO 8583 message generator applies the following formatting rules based on f
   ```
   Output: "010203"
 
-### 4. Variable Alphanumeric Fields (data_type: "alphanumeric", length_type: "variable")
+### 5. Variable Alphanumeric Fields (data_type: "alphanumeric", length_type: "variable")
 - **Formatting**: Length indicator (zero-padded) + actual data
 - **Length constraint**: Total length (indicator + data) must not exceed max_length
 - **Examples**:
   - Field 31 (length_indicator_size: 2, max_length: 18): "TXN123456789" → "12TXN123456789"
   - Field 95 (length_indicator_size: 2, max_length: 11): "SORTCODE" → "08SORTCODE"
 
-### 5. Fixed Alphanumeric Fields (data_type: "alphanumeric", length_type: "fixed")
+### 6. Fixed Alphanumeric Fields (data_type: "alphanumeric", length_type: "fixed")
 - **Formatting**: Right-padded with spaces to specified length
 - **Examples**:
   - Field 42 (length 11): "ABCDEFGHIJK" → "ABCDEFGHIJK"
@@ -336,6 +345,21 @@ For variable-length fields, ensure the data length plus length indicator size do
 
 # Incorrect
 "f95": "SORTCODE123"  # 11 chars, total = 13 (2 + 11) > 11
+```
+
+### Error: Rate value exceeds length
+
+For rate fields, ensure the value (without decimal) plus decimal position indicator doesn't exceed the specified length:
+
+```bash
+# Field 10 has length=12
+
+# Correct
+"f10": "3.45678"           # 5 + "345678" = 500000345678 (12 chars)
+"f10": "3"                 # No decimal = 000000000003 (12 chars)
+
+# Incorrect
+"f10": "123456789.123"     # Would be 3123456789123 (13 chars) > 12
 ```
 
 ## Technical Details

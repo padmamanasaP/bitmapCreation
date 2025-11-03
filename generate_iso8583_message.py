@@ -11,9 +11,10 @@ This script converts JSON field data into a complete ISO 8583 message with:
 Field formatting rules:
 1. Date fields: Convert from "YYYY-MM-DD HH:MM:SS" to format in value_constraints
 2. Numeric fixed-length: Zero-pad to specified length
-3. Subfields: Apply same rules recursively
-4. Variable alphanumeric: Length indicator + data (respecting max_length)
-5. Fixed alphanumeric: Space-pad to specified length
+3. Rate fields: Format as ABBBBBBBBBBB (A=decimal position, B=value without decimal)
+4. Subfields: Apply same rules recursively
+5. Variable alphanumeric: Length indicator + data (respecting max_length)
+6. Fixed alphanumeric: Space-pad to specified length
 """
 
 import json
@@ -116,6 +117,51 @@ class ISO8583MessageGenerator:
             raise ValueError(f"Numeric value '{value}' exceeds length {length}")
         
         return sign + value_str.zfill(length)
+    
+    def format_rate(self, value, length):
+        """
+        Format rate value according to ISO 8583 rate format.
+        
+        Format: ABBBBBBBBBBB where:
+        - A = decimal position from the right (1 digit)
+        - B = value without decimal point, zero-padded on left (length-1 digits)
+        
+        Args:
+            value: Rate value (string or float, e.g., "3.45678" or 3.45678)
+            length: Total length of formatted output
+        
+        Returns:
+            Formatted rate string
+        
+        Examples:
+            format_rate("3.45678", 12) -> "500000345678"
+            format_rate("3", 12) -> "000000000003"
+            format_rate(3, 12) -> "000000000003"
+        """
+        value_str = str(value)
+        
+        if '.' in value_str:
+            parts = value_str.split('.')
+            integer_part = parts[0]
+            decimal_part = parts[1]
+            
+            decimal_position = len(decimal_part)
+            value_without_decimal = integer_part + decimal_part
+            
+            value_length = length - 1
+            if len(value_without_decimal) > value_length:
+                raise ValueError(f"Rate value '{value}' exceeds length {length}")
+            
+            padded_value = value_without_decimal.zfill(value_length)
+            
+            return str(decimal_position) + padded_value
+        else:
+            value_str = ''.join(c for c in value_str if c.isdigit())
+            
+            if len(value_str) > length:
+                raise ValueError(f"Rate value '{value}' exceeds length {length}")
+            
+            return value_str.zfill(length)
     
     def format_alphanumeric_fixed(self, value, length):
         """
@@ -227,6 +273,9 @@ class ISO8583MessageGenerator:
                 return self.convert_date(field_value, date_format)
             else:
                 raise ValueError(f"Cannot determine date format from value_constraints: {value_constraints}")
+        
+        if data_type == 'rate':
+            return self.format_rate(field_value, length)
         
         if data_type == 'numeric':
             if length_type == 'fixed':
